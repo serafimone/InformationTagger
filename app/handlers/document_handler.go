@@ -8,9 +8,9 @@ import (
 	"github.com/serafimone/InformationTagger/app/models"
 )
 
-//GetAllDocuments tries to get all documents from database
+// GetAllDocuments tries to get all documents from database
 func GetAllDocuments(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
-	documents, err := models.GetAllDocuments(db, w, r)
+	documents, err := models.GetAllDocuments(db, r)
 	if documents == nil || err != nil {
 		fmt.Println(err.Error())
 		respondError(w, http.StatusNotFound, err.Error())
@@ -19,9 +19,9 @@ func GetAllDocuments(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, documents)
 }
 
-//GetDocument tries to get document from database
+// GetDocument tries to get document from database
 func GetDocument(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
-	document, err := models.GetDocument(db, w, r)
+	document, err := models.GetDocument(db, r)
 	if document == nil || err != nil {
 		respondError(w, http.StatusNotFound, err.Error())
 		return
@@ -29,7 +29,7 @@ func GetDocument(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, document)
 }
 
-//CreateDocument creates document and try insert it to database
+// CreateDocument creates document and try insert it to database
 func CreateDocument(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	document, err := models.CreateDocument(db, w, r)
 	if document == nil || err != nil {
@@ -40,12 +40,21 @@ func CreateDocument(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 
 }
 
-//DeleteDocument tries to delete document from database
+// DeleteDocument tries to delete document from database
 func DeleteDocument(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	err := models.DeleteDocument(db, w, r)
 	if err != nil {
 		respondError(w, http.StatusNotFound, err.Error())
 		return
 	}
-	respondJSON(w, http.StatusOK, nil)
+	respondJSON(w, http.StatusOK, "Success")
+}
+
+func UpdateDocumentTitle(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	document, err := models.UpdateDocumentTitle(db, w, r)
+	if err != nil {
+		respondError(w, http.StatusNotFound, err.Error())
+		return
+	}
+	respondJSON(w, http.StatusOK, document)
 }

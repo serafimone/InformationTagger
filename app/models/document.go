@@ -1,12 +1,13 @@
 package models
 
 import (
-	"encoding/json"
+	"io/ioutil"
+	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/serafimone/InformationTagger/app/utils"
 )
 
 //Document type represents documents
@@ -17,37 +18,57 @@ type Document struct {
 }
 
 //GetAllDocuments try to get all documents from database
-func GetAllDocuments(db *gorm.DB, w http.ResponseWriter, r *http.Request) (*[]Document, error) {
+func GetAllDocuments(db *gorm.DB, r *http.Request) (*[]Document, error) {
 	documents := []Document{}
 	err := db.Find(&documents)
 	return &documents, err.Error
 }
 
 //GetDocument try to get document from database
-func GetDocument(db *gorm.DB, w http.ResponseWriter, r *http.Request) (*Document, error) {
-	vars := mux.Vars(r)
-	title := vars["title"]
-	return getDocumentFromDatabase(title, db, w)
+func GetDocument(db *gorm.DB, r *http.Request) (*Document, error) {
+	document := Document{}
+	documentID := utils.GetInt64FieldFromRequest(r, "document_id")
+	context := db.Where([]int64{documentID}).First(&document)
+	return &document, context.Error
 }
 
-//CreateDocument create document and insert it into database
+//CreateDocument creates document and insert it into database
 func CreateDocument(db *gorm.DB, w http.ResponseWriter, r *http.Request) (*Document, error) {
 	document := Document{}
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&document)
+	requestData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
+		log.Fatal(err.Error())
 		return nil, err
 	}
 	defer r.Body.Close()
+	title := string(requestData)
+	document.Title = title
 	err = db.Save(&document).Error
 	return &document, nil
 }
 
+func UpdateDocumentTitle(db *gorm.DB, w http.ResponseWriter, r *http.Request) (*Document, error) {
+	id := utils.GetInt64FieldFromRequest(r, "document_id")
+	document, err := getDocumentFromDatabase(id, db)
+	if err != nil {
+		return nil, err
+	}
+	requestData, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal(err.Error())
+		return nil, err
+	}
+	defer r.Body.Close()
+	title := string(requestData)
+	document.Title = title
+	context := db.Save(&document)
+	return document, context.Error
+}
+
 //DeleteDocument try to delete document from database
 func DeleteDocument(db *gorm.DB, w http.ResponseWriter, r *http.Request) error {
-	vars := mux.Vars(r)
-	title := vars["title"]
-	document, err := getDocumentFromDatabase(title, db, w)
+	id := utils.GetInt64FieldFromRequest(r, "document_id")
+	document, err := getDocumentFromDatabase(id, db)
 	if document == nil || err != nil {
 		return err
 	}
@@ -55,9 +76,9 @@ func DeleteDocument(db *gorm.DB, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func getDocumentFromDatabase(title string, db *gorm.DB, w http.ResponseWriter) (*Document, error) {
+func getDocumentFromDatabase(id int64, db *gorm.DB) (*Document, error) {
 	document := Document{}
-	if err := db.First(&document, Document{Title: title}).Error; err != nil {
+	if err := db.First(&document, id).Error; err != nil {
 		return nil, err
 	}
 	return &document, nil
