@@ -65,16 +65,16 @@ func DeleteRecord(db *gorm.DB, r *http.Request) error {
 	return context.Error
 }
 
-func UpdateRecordContent(db *gorm.DB, r *http.Request) error {
+func UpdateRecordContent(db *gorm.DB, r *http.Request) (*Record, error) {
 	document, err := GetDocument(db, r)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	id := utils.GetInt64FieldFromRequest(r, "record_id")
 	requestData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Fatal(err.Error())
-		return err
+		return nil, err
 	}
 	defer r.Body.Close()
 	content := string(requestData)
@@ -82,9 +82,9 @@ func UpdateRecordContent(db *gorm.DB, r *http.Request) error {
 	context := db.Model(&document).Related(&[]Record{}).Where([]int64{id}).First(&record)
 	if context.Error != nil {
 		log.Fatalf(err.Error())
-		return err
+		return nil, err
 	}
 	record.Content = content
 	context = db.Save(&record)
-	return context.Error
+	return &record, context.Error
 }

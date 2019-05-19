@@ -44,10 +44,10 @@ func DeleteRecord(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateRecordContent(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
-	err := models.UpdateRecordContent(db, r)
+	record, err := models.UpdateRecordContent(db, r)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	respondJSON(w, http.StatusOK, "Success")
+	respondJSON(w, http.StatusOK, record)
 }

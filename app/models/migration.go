@@ -9,5 +9,6 @@ import (
 func DBMigrate(db *gorm.DB) *gorm.DB {
 	db.AutoMigrate(&Document{}, &Record{})
 	db.Model(&Record{}).AddForeignKey("document_id", "documents(id)", "CASCADE", "CASCADE")
+	db.Model(&Record{}).ModifyColumn("content", "LONGTEXT")
 	return db
 }
