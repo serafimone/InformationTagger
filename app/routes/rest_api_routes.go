@@ -12,13 +12,11 @@ func GetRESTAPIRoutes(router *mux.Router) *mux.Router {
 	router.Handle(
 		utils.APIVersion+"documents",
 		negroni.New(
-			negroni.HandlerFunc(authentication.RequireTokenAuthentication),
 			negroni.HandlerFunc(services.GetAllDocuments),
 		)).Methods("GET")
 	router.Handle(
 		utils.APIVersion+"documents/{document_id}",
 		negroni.New(
-			negroni.HandlerFunc(authentication.RequireTokenAuthentication),
 			negroni.HandlerFunc(services.GetDocument),
 		)).Methods("GET")
 	router.Handle(
@@ -36,9 +34,8 @@ func GetRESTAPIRoutes(router *mux.Router) *mux.Router {
 	router.Handle(
 		utils.APIVersion+"documents/{document_id}",
 		negroni.New(
-			negroni.HandlerFunc(authentication.RequireTokenAuthentication),
 			negroni.HandlerFunc(services.DeleteDocument),
-		)).Methods("DELETE")
+		)).Methods("DELETE", "OPTIONS")
 	router.Handle(
 		utils.APIVersion+"documents/{document_id}/records",
 		negroni.New(
@@ -54,7 +51,6 @@ func GetRESTAPIRoutes(router *mux.Router) *mux.Router {
 	router.Handle(
 		utils.APIVersion+"documents/{document_id}/records/record",
 		negroni.New(
-			negroni.HandlerFunc(authentication.RequireTokenAuthentication),
 			negroni.HandlerFunc(services.AddRecordToDocument),
 		)).Methods("POST")
 	router.Handle(
@@ -65,9 +61,11 @@ func GetRESTAPIRoutes(router *mux.Router) *mux.Router {
 		)).Methods("POST")
 	router.Handle(utils.APIVersion+"documents/{document_id}/records/{record_id}",
 		negroni.New(
-			negroni.HandlerFunc(authentication.RequireTokenAuthentication),
 			negroni.HandlerFunc(services.DeleteDocumentRecord),
-		)).Methods("DELETE")
-
+		)).Methods("DELETE", "OPTIONS")
+	router.Handle(utils.APIVersion+"form",
+		negroni.New(
+			negroni.HandlerFunc(services.FormDocument),
+		)).Methods("POST", "OPTIONS")
 	return router
 }

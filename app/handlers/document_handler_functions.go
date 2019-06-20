@@ -1,11 +1,17 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
+	"github.com/unidoc/unioffice/measurement"
+	"github.com/unidoc/unioffice/schema/soo/wml"
+
 	"github.com/jinzhu/gorm"
 	"github.com/serafimone/InformationTagger/app/models"
+	"github.com/serafimone/InformationTagger/app/requests"
+	"github.com/unidoc/unioffice/document"
 )
 
 // GetAllDocuments tries to get all documents from database
@@ -57,4 +63,30 @@ func UpdateDocumentTitle(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, document)
+}
+
+func FormDocument(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	body := r.Body
+	request := requests.FormDocumentRequest{}
+	decoder := json.NewDecoder(body)
+	if err := decoder.Decode(&request); err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	documentFromDatabase, err := models.GetDocumentFromDatabase(request.DocumentID, db)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	dox := document.New()
+	for _, element := range documentFromDatabase.Records {
+		paragraph := dox.AddParagraph()
+		run := paragraph.AddRun()
+		run.AddText(element.Content)
+		run.Properties().SetSize(measurement.Distance(request.FontSize))
+		run.Properties().SetFontFamily(request.Font)
+		paragraph.Properties().Spacing().SetLineSpacing(measurement.Distance(request.FontSize*request.Interval), wml.ST_LineSpacingRuleAuto)
+	}
+	dox.SaveToFile("D:/file.docx")
+	respondJSON(w, http.StatusOK, "Success")
 }

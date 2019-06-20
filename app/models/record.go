@@ -13,8 +13,8 @@ import (
 // Record type represents records
 type Record struct {
 	gorm.Model
-	Content    string `json:"content"`
-	DocumentID uint   `json:"document_id"`
+	Content    string `json:"Content"`
+	DocumentID uint   `json:"DocumentID"`
 }
 
 func CreateRecord(db *gorm.DB, r *http.Request) (*Record, error) {
@@ -87,4 +87,10 @@ func UpdateRecordContent(db *gorm.DB, r *http.Request) (*Record, error) {
 	record.Content = content
 	context = db.Save(&record)
 	return &record, context.Error
+}
+
+func getDocumentRecords(db *gorm.DB, document *Document) {
+	if err := db.Model(document).Related(&document.Records); err == nil {
+		panic("Error, while setting document records!")
+	}
 }

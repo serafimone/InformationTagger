@@ -13,15 +13,18 @@ import (
 //Document type represents documents
 type Document struct {
 	gorm.Model
-	Title   string   `gorm:"unique" json:"title"`
-	Records []Record `gorm:"ForeignKey:DocumentID" json:"records"`
+	Title   string   `gorm:"unique" json:"Title"`
+	Records []Record `gorm:"ForeignKey:DocumentID" json:"Records"`
 }
 
 //GetAllDocuments try to get all documents from database
 func GetAllDocuments(db *gorm.DB, r *http.Request) (*[]Document, error) {
 	documents := []Document{}
-	err := db.Find(&documents)
-	return &documents, err.Error
+	context := db.Find(&documents)
+	for index := range documents {
+		getDocumentRecords(db, &documents[index])
+	}
+	return &documents, context.Error
 }
 
 //GetDocument try to get document from database
@@ -29,6 +32,7 @@ func GetDocument(db *gorm.DB, r *http.Request) (*Document, error) {
 	document := Document{}
 	documentID := utils.GetInt64FieldFromRequest(r, "document_id")
 	context := db.Where([]int64{documentID}).First(&document)
+	getDocumentRecords(db, &document)
 	return &document, context.Error
 }
 
@@ -49,7 +53,7 @@ func CreateDocument(db *gorm.DB, w http.ResponseWriter, r *http.Request) (*Docum
 
 func UpdateDocumentTitle(db *gorm.DB, w http.ResponseWriter, r *http.Request) (*Document, error) {
 	id := utils.GetInt64FieldFromRequest(r, "document_id")
-	document, err := getDocumentFromDatabase(id, db)
+	document, err := GetDocumentFromDatabase(id, db)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +72,7 @@ func UpdateDocumentTitle(db *gorm.DB, w http.ResponseWriter, r *http.Request) (*
 //DeleteDocument try to delete document from database
 func DeleteDocument(db *gorm.DB, w http.ResponseWriter, r *http.Request) error {
 	id := utils.GetInt64FieldFromRequest(r, "document_id")
-	document, err := getDocumentFromDatabase(id, db)
+	document, err := GetDocumentFromDatabase(id, db)
 	if document == nil || err != nil {
 		return err
 	}
@@ -76,7 +80,7 @@ func DeleteDocument(db *gorm.DB, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func getDocumentFromDatabase(id int64, db *gorm.DB) (*Document, error) {
+func GetDocumentFromDatabase(id int64, db *gorm.DB) (*Document, error) {
 	document := Document{}
 	if err := db.First(&document, id).Error; err != nil {
 		return nil, err

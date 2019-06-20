@@ -30,6 +30,10 @@ func UpdateDocumentTitle(w http.ResponseWriter, r *http.Request, next http.Handl
 	handlers.UpdateDocumentTitle(container.GetDBConnection(), w, r)
 }
 
+func FormDocument(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	handlers.FormDocument(container.GetDBConnection(), w, r)
+}
+
 // RECORDS API BLOCK
 
 func GetAllDocumentRecords(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
