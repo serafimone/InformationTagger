@@ -89,7 +89,7 @@ func UpdateRecordContent(db *gorm.DB, r *http.Request) (*Record, error) {
 	return &record, context.Error
 }
 
-func getDocumentRecords(db *gorm.DB, document *Document) {
+func GetDocumentRecords(db *gorm.DB, document *Document) {
 	if err := db.Model(document).Related(&document.Records); err == nil {
 		panic("Error, while setting document records!")
 	}

@@ -22,7 +22,6 @@ func GetRESTAPIRoutes(router *mux.Router) *mux.Router {
 	router.Handle(
 		utils.APIVersion+"documents/document",
 		negroni.New(
-			negroni.HandlerFunc(authentication.RequireTokenAuthentication),
 			negroni.HandlerFunc(services.CreateDocument),
 		)).Methods("POST")
 	router.Handle(

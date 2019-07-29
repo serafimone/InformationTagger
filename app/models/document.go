@@ -22,7 +22,7 @@ func GetAllDocuments(db *gorm.DB, r *http.Request) (*[]Document, error) {
 	documents := []Document{}
 	context := db.Find(&documents)
 	for index := range documents {
-		getDocumentRecords(db, &documents[index])
+		GetDocumentRecords(db, &documents[index])
 	}
 	return &documents, context.Error
 }
@@ -32,7 +32,7 @@ func GetDocument(db *gorm.DB, r *http.Request) (*Document, error) {
 	document := Document{}
 	documentID := utils.GetInt64FieldFromRequest(r, "document_id")
 	context := db.Where([]int64{documentID}).First(&document)
-	getDocumentRecords(db, &document)
+	GetDocumentRecords(db, &document)
 	return &document, context.Error
 }
 
@@ -47,6 +47,7 @@ func CreateDocument(db *gorm.DB, w http.ResponseWriter, r *http.Request) (*Docum
 	defer r.Body.Close()
 	title := string(requestData)
 	document.Title = title
+	document.Records = []Record{}
 	err = db.Save(&document).Error
 	return &document, nil
 }
